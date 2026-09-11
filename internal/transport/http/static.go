@@ -19,87 +19,223 @@ func getManagementUI() string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Office Tracker - Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --garnet: #862633;
+            --garnet-dark: #5E1A24;
+            --garnet-bright: #A6192E;
+            --ieee-blue: #00629B;
+            --ieee-blue-dark: #004A78;
+            --ieee-blue-tint: #E4F1F8;
+            --ink: #1F2430;
+            --ink-soft: #5B6472;
+            --surface: #FFFFFF;
+            --surface-2: #F3F5F8;
+            --page-bg: #EEF1F5;
+            --line: #E2E6EC;
+            --line-strong: #C9D0D9;
+            --success: #1F8A4C;
+            --success-bg: #E4F6EA;
+            --success-text: #175C33;
+            --success-border: #BFE6CE;
+            --danger: #C23B3B;
+            --danger-bg: #FBE7E7;
+            --danger-text: #8A2323;
+            --danger-border: #F3C6C6;
+            --info-bg: #E3F0F8;
+            --info-text: #114A6C;
+            --info-border: #BFE0F0;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 2px rgba(31,36,48,.05), 0 6px 20px -8px rgba(31,36,48,.16);
+            --font-display: 'Barlow Semi Condensed', 'Segoe UI', sans-serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #E7E9EE;
+                --ink-soft: #9AA3B2;
+                --surface: #1B2028;
+                --surface-2: #222833;
+                --page-bg: #14171D;
+                --line: #313847;
+                --line-strong: #3E4759;
+                --ieee-blue-tint: #16303F;
+                --success-bg: #143824;
+                --success-text: #6FDB9B;
+                --success-border: #1F5C3B;
+                --danger-bg: #3B1B1B;
+                --danger-text: #F0A0A0;
+                --danger-border: #6B2C2C;
+                --info-bg: #142A38;
+                --info-text: #8FCBEE;
+                --info-border: #1F4A61;
+            }
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
+            font-family: var(--font-body);
+            background: var(--page-bg);
+            color: var(--ink);
+            padding: 24px;
+            -webkit-font-smoothing: antialiased;
         }
         .container { max-width: 1400px; margin: 0 auto; }
-        header {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        header.topbar {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(120deg, var(--garnet) 0%, var(--garnet-dark) 55%, var(--ieee-blue-dark) 100%);
+            color: #fff;
+            padding: 26px 28px;
+            border-radius: var(--radius);
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 18px;
         }
-        h1 { color: #333; font-size: 24px; margin-bottom: 5px; }
-        .subtitle { color: #666; font-size: 14px; }
+        header.topbar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(600px 200px at 100% 0%, rgba(255,255,255,.14), transparent 60%);
+            pointer-events: none;
+        }
+        .brandmark {
+            position: relative;
+            flex: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: .02em;
+        }
+        .topbar-text { position: relative; flex: 1; min-width: 0; }
+        h1 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 26px;
+            letter-spacing: .01em;
+            color: #fff;
+        }
+        .subtitle { color: rgba(255,255,255,.82); font-size: 13.5px; margin-top: 3px; }
+        .topbar-tag {
+            position: relative;
+            flex: none;
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,.92);
+            border: 1px solid rgba(255,255,255,.4);
+            border-radius: 999px;
+            padding: 6px 12px;
+            white-space: nowrap;
+        }
+
         .tabs {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             margin-bottom: 20px;
+            background: var(--surface);
+            padding: 6px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+            overflow-x: auto;
         }
         .tab {
-            padding: 10px 20px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 10px 18px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            font-family: var(--font-body);
             font-size: 14px;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            color: #333;
+            font-weight: 600;
+            color: var(--ink-soft);
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
         }
-        .tab:hover { background: #f0f0f0; }
-        .tab.active { background: #007bff; color: white; border-color: #007bff; }
+        .tab:hover { background: var(--surface-2); color: var(--ink); }
+        .tab.active { background: var(--garnet); color: #fff; border-color: var(--garnet); }
         .panel {
             display: none;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--surface);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
         }
         .panel.active { display: block; }
+        .panel h2 { font-family: var(--font-display); font-size: 21px; color: var(--ink); }
+        .panel h3, .panel h4 { font-family: var(--font-display); color: var(--ink); font-weight: 600; }
         .form-group {
             margin-bottom: 15px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
+            margin-bottom: 6px;
+            color: var(--ink-soft);
+            font-weight: 600;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
         input, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px 12px;
+            border: 1px solid var(--line-strong);
+            border-radius: var(--radius-sm);
             font-size: 14px;
+            font-family: var(--font-body);
+            background: var(--surface);
+            color: var(--ink);
         }
         input:focus, select:focus {
             outline: none;
-            border-color: #007bff;
+            border-color: var(--ieee-blue);
+            box-shadow: 0 0 0 3px var(--ieee-blue-tint);
         }
         button {
-            padding: 10px 20px;
-            background: #007bff;
+            padding: 10px 18px;
+            background: var(--garnet);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.2s;
+            font-weight: 600;
+            font-family: var(--font-body);
+            transition: background 0.15s, transform 0.05s;
         }
-        button:hover { background: #0056b3; }
+        button:hover { background: var(--garnet-dark); }
+        button:active { transform: translateY(1px); }
         button.secondary {
-            background: #6c757d;
+            background: var(--surface-2);
+            color: var(--ink);
+            border: 1px solid var(--line-strong);
         }
-        button.secondary:hover { background: #545b62; }
-        button.danger { background: #dc3545; }
-        button.danger:hover { background: #c82333; }
+        button.secondary:hover { background: var(--line); }
+        button.danger { background: var(--danger); }
+        button.danger:hover { background: #A32F2F; }
+        button.edit, .btn-small.edit { background: var(--ieee-blue); }
+        button.edit:hover, .btn-small.edit:hover { background: var(--ieee-blue-dark); }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -108,64 +244,75 @@ func getManagementUI() string {
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--line);
         }
         th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
+            background: var(--surface-2);
+            font-weight: 700;
+            color: var(--ink-soft);
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
         }
         td { font-size: 14px; }
-        tr:hover { background: #f8f9fa; }
+        tr:hover td { background: var(--surface-2); }
         .badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
         }
-        .badge.success { background: #d4edda; color: #155724; }
-        .badge.danger { background: #f8d7da; color: #721c24; }
-        .badge.info { background: #d1ecf1; color: #0c5460; }
+        .badge.success { background: var(--success-bg); color: var(--success-text); }
+        .badge.danger { background: var(--danger-bg); color: var(--danger-text); }
+        .badge.info { background: var(--info-bg); color: var(--info-text); }
         .actions {
             display: flex;
-            gap: 5px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
         .btn-small {
-            padding: 5px 10px;
+            padding: 6px 11px;
             font-size: 12px;
         }
         .message {
-            padding: 12px;
-            border-radius: 4px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
             margin-bottom: 15px;
             font-size: 14px;
         }
-        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .message.success { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+        .message.error { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
+        .message.info { background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
             margin-bottom: 20px;
         }
         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--surface);
+            padding: 18px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            border-top: 3px solid var(--garnet);
         }
+        .stat-card:nth-child(4n+2) { border-top-color: var(--ieee-blue); }
+        .stat-card:nth-child(4n+3) { border-top-color: var(--garnet-bright); }
+        .stat-card:nth-child(4n+4) { border-top-color: var(--ieee-blue-dark); }
         .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #007bff;
+            font-family: var(--font-display);
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
         }
         .stat-label {
-            color: #666;
-            font-size: 14px;
-            margin-top: 5px;
+            color: var(--ink-soft);
+            font-size: 12.5px;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
         .search-box {
             margin-bottom: 15px;
@@ -198,20 +345,32 @@ func getManagementUI() string {
             align-items: center;
             gap: 6px;
             font-size: 14px;
-            color: #333;
+            color: var(--ink);
             font-weight: 500;
         }
         .muted {
-            color: #666;
+            color: var(--ink-soft);
             font-size: 13px;
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            header.topbar { flex-wrap: wrap; padding: 20px; }
+            .topbar-tag { order: 3; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .panel { padding: 16px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Office Tracker</h1>
-            <div class="subtitle">System Management Dashboard</div>
+        <header class="topbar">
+            <div class="brandmark">OT</div>
+            <div class="topbar-text">
+                <h1>Office Tracker</h1>
+                <div class="subtitle">IEEE uOttawa Student Branch &middot; Attendance &amp; Presence System</div>
+            </div>
+            <div class="topbar-tag">IEEE &times; uOttawa</div>
         </header>
 
         <div class="tabs">
@@ -1066,7 +1225,7 @@ func getManagementUI() string {
                         '<td class="actions">' +
                             '<button class="btn-small" onclick="checkInUser(' + u.id + ')">Check In</button>' +
                             '<button class="btn-small secondary" onclick="checkOutUser(' + u.id + ')">Check Out</button>' +
-                            '<button class="btn-small" style="background: #28a745;" onclick="editUser(' + u.id + ', \'' + u.name.replace(/'/g, "\\'") + '\', \'' + (u.rfid_uid || '').replace(/'/g, "\\'") + '\', \'' + (u.discord_id || '').replace(/'/g, "\\'") + '\')">Edit</button>' +
+                            '<button class="btn-small edit" onclick="editUser(' + u.id + ', \'' + u.name.replace(/'/g, "\\'") + '\', \'' + (u.rfid_uid || '').replace(/'/g, "\\'") + '\', \'' + (u.discord_id || '').replace(/'/g, "\\'") + '\')">Edit</button>' +
                             '<button class="btn-small danger" onclick="deleteUser(' + u.id + ')">Delete</button>' +
                         '</td>' +
                         '</tr>';
@@ -1095,7 +1254,7 @@ func getManagementUI() string {
                         '<td class="actions">' +
                             '<button class="btn-small" onclick="checkInUser(' + u.id + ')">Check In</button>' +
                             '<button class="btn-small secondary" onclick="checkOutUser(' + u.id + ')">Check Out</button>' +
-                            '<button class="btn-small" style="background: #28a745;" onclick="editUser(' + u.id + ', \'' + u.name.replace(/'/g, "\\'") + '\', \'' + (u.rfid_uid || '').replace(/'/g, "\\'") + '\', \'' + (u.discord_id || '').replace(/'/g, "\\'") + '\')">Edit</button>' +
+                            '<button class="btn-small edit" onclick="editUser(' + u.id + ', \'' + u.name.replace(/'/g, "\\'") + '\', \'' + (u.rfid_uid || '').replace(/'/g, "\\'") + '\', \'' + (u.discord_id || '').replace(/'/g, "\\'") + '\')">Edit</button>' +
                             '<button class="btn-small danger" onclick="deleteUser(' + u.id + ')">Delete</button>' +
                         '</td>' +
                         '</tr>';
@@ -1359,7 +1518,7 @@ func getManagementUI() string {
                     '<td><span class="badge ' + (isActive ? 'success' : 'info') + '">' + (isActive ? 'Active' : 'Completed') + '</span></td>' +
                     '<td>' + esc(signOutMethod) + '</td>' +
                     '<td class="actions">' +
-                        '<button class="btn-small" style="background: #28a745;" onclick="editSessionById(' + s.id + ')">Edit</button>' +
+                        '<button class="btn-small edit" onclick="editSessionById(' + s.id + ')">Edit</button>' +
                         '<button class="btn-small danger" onclick="deleteSessionById(' + s.id + ')">Delete</button>' +
                     '</td>' +
                     '</tr>';
