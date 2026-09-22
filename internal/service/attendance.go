@@ -56,7 +56,7 @@ func (s *AttendanceService) Scan(uid string) (*dto.ScanResult, error) {
 		// Record scan asynchronously (non-blocking)
 		go s.recordScan(uid, user.Name, true, "check-in")
 		TriggerAttendanceChangeCallback()
-		return &dto.ScanResult{User: user.Name, Action: "check-in"}, nil
+		return &dto.ScanResult{User: user.Name, Action: "check-in", Jingle: user.Jingle}, nil
 	} else if err != nil {
 		log.Error("db error fetching open session", "err", err)
 		return nil, errors.New("database error")
@@ -73,7 +73,7 @@ func (s *AttendanceService) Scan(uid string) (*dto.ScanResult, error) {
 	// Record scan asynchronously (non-blocking)
 	go s.recordScan(uid, user.Name, true, "check-out")
 	TriggerAttendanceChangeCallback()
-	return &dto.ScanResult{User: user.Name, Action: "check-out"}, nil
+	return &dto.ScanResult{User: user.Name, Action: "check-out", Jingle: user.Jingle}, nil
 }
 
 // recordScan stores a scan log entry with UID, timestamp, user info, and action

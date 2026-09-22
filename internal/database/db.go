@@ -68,5 +68,40 @@ func Migrate(db *sql.DB) error {
 		}
 	}
 
+	if err := addColumnIfMissing(db, "users", "jingle", "TEXT"); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// addColumnIfMissing adds a column to a table if it doesn't already exist.
+// SQLite has no "ALTER TABLE ... ADD COLUMN IF NOT EXISTS", so existing
+// columns are checked via PRAGMA table_info first to keep this idempotent
+// across repeated startups, same as the CREATE TABLE IF NOT EXISTS calls above.
+func addColumnIfMissing(db *sql.DB, table, column, sqlType string) error {
+	rows, err := db.Query(`PRAGMA table_info(` + table + `)`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name, colType string
+		var notNull, pk int
+		var dfltValue sql.NullString
+		if err := rows.Scan(&cid, &name, &colType, &notNull, &dfltValue, &pk); err != nil {
+			return err
+		}
+		if name == column {
+			return nil // already present
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`ALTER TABLE ` + table + ` ADD COLUMN ` + column + ` ` + sqlType)
+	return err
 }

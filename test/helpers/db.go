@@ -27,6 +27,7 @@ func SetupTestDB(t *testing.T) *sql.DB {
 			name TEXT NOT NULL,
 			rfid_uid TEXT UNIQUE NOT NULL,
 			discord_id TEXT,
+			jingle TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`,
 

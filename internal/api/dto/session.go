@@ -27,6 +27,10 @@ type PresenceResponse struct {
 type ScanResult struct {
 	User   string `json:"user"`
 	Action string `json:"action"`
+	// Jingle is the user's chosen sign-in jingle identifier (e.g. "mario"),
+	// looked up by the ESP32 firmware against its own local table. Empty
+	// means "use the device default".
+	Jingle string `json:"jingle,omitempty"`
 }
 
 // ScanRequest is the DTO for RFID scan requests

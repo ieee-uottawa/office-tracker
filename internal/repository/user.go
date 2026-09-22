@@ -15,12 +15,12 @@ type UserRepo struct {
 // FindByRFID retrieves a user from the database based on their RFID UID. If no user is found, it returns nil and an error.
 func (r *UserRepo) FindByRFID(uid string) (*domain.User, error) {
 	row := r.DB.QueryRow(`
-		SELECT id, name, rfid_uid, discord_id, created_at
+		SELECT id, name, rfid_uid, discord_id, COALESCE(jingle, ''), created_at
 		FROM users WHERE rfid_uid = ?`, uid)
 
 	var u domain.User
 
-	err := row.Scan(&u.ID, &u.Name, &u.RFIDUID, &u.DiscordID, &u.CreatedAt)
+	err := row.Scan(&u.ID, &u.Name, &u.RFIDUID, &u.DiscordID, &u.Jingle, &u.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -31,12 +31,12 @@ func (r *UserRepo) FindByRFID(uid string) (*domain.User, error) {
 // FindByID retrieves a user from the database based on their ID. If no user is found, it returns nil and an error.
 func (r *UserRepo) FindByID(id int64) (*domain.User, error) {
 	row := r.DB.QueryRow(`
-		SELECT id, name, rfid_uid, discord_id, created_at
+		SELECT id, name, rfid_uid, discord_id, COALESCE(jingle, ''), created_at
 		FROM users WHERE id = ?`, id)
 
 	var u domain.User
 
-	err := row.Scan(&u.ID, &u.Name, &u.RFIDUID, &u.DiscordID, &u.CreatedAt)
+	err := row.Scan(&u.ID, &u.Name, &u.RFIDUID, &u.DiscordID, &u.Jingle, &u.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -47,17 +47,26 @@ func (r *UserRepo) FindByID(id int64) (*domain.User, error) {
 // FindByDiscordID retrieves a user from the database based on their Discord ID. If no user is found, it returns nil and an error.
 func (r *UserRepo) FindByDiscordID(discordID string) (*domain.User, error) {
 	row := r.DB.QueryRow(`
-		SELECT id, name, rfid_uid, discord_id, created_at
+		SELECT id, name, rfid_uid, discord_id, COALESCE(jingle, ''), created_at
 		FROM users WHERE discord_id = ?`, discordID)
 
 	var u domain.User
 
-	err := row.Scan(&u.ID, &u.Name, &u.RFIDUID, &u.DiscordID, &u.CreatedAt)
+	err := row.Scan(&u.ID, &u.Name, &u.RFIDUID, &u.DiscordID, &u.Jingle, &u.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 
 	return &u, nil
+}
+
+// UpdateJingle sets a user's chosen sign-in jingle by ID.
+func (r *UserRepo) UpdateJingle(id int64, jingle string) (*domain.User, error) {
+	_, err := r.DB.Exec(`UPDATE users SET jingle = ? WHERE id = ?`, jingle, id)
+	if err != nil {
+		return nil, err
+	}
+	return r.FindByID(id)
 }
 
 // List retrieves users matching the filter.

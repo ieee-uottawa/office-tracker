@@ -79,6 +79,7 @@ type Bot struct {
 	myStatsCommands     *commands.MyStatsCommands      // Personal stats commands
 	reportsToggleCmd    *commands.ReportsToggleCommand // Reports toggle command (Admin only)
 	scanHistoryCommands *commands.ScanHistoryCommands  // Scan history command (Admin only)
+	jingleCommands      *commands.JingleCommands       // Personal sign-in jingle command
 }
 
 // Session returns the Discord session for use by external components
@@ -121,6 +122,7 @@ func New(token string, services *app.Services, execGuildID string, communityGuil
 		statsCommands:       commands.NewStatsCommands(services.Stats),
 		myStatsCommands:     commands.NewMyStatsCommands(services.Stats, services.User),
 		scanHistoryCommands: commands.NewScanHistoryCommands(services.Attendance),
+		jingleCommands:      commands.NewJingleCommands(services.User),
 	}
 
 	// Add reports toggle command if reports service is available
@@ -153,6 +155,7 @@ func (b *Bot) RegisterSlashCommands() error {
 	statsCmds := b.statsCommands.GetApplicationCommands()
 	myStatsCmds := b.myStatsCommands.GetApplicationCommands()
 	scanHistoryCmds := b.scanHistoryCommands.GetApplicationCommands()
+	jingleCmds := b.jingleCommands.GetApplicationCommands()
 
 	// Prepare reports toggle command if available
 	var reportsToggleCmds []*discordgo.ApplicationCommand
@@ -180,6 +183,7 @@ func (b *Bot) RegisterSlashCommands() error {
 	execCmds = append(execCmds, myStatsCmds...)
 	execCmds = append(execCmds, reportsToggleCmds...)
 	execCmds = append(execCmds, scanHistoryCmds...)
+	execCmds = append(execCmds, jingleCmds...)
 
 	// Define guild-specific commands
 	guildCommands := map[string][]*discordgo.ApplicationCommand{

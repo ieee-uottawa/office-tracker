@@ -44,6 +44,17 @@ func (s *UserService) GetUserByDiscordID(discordID string) (*domain.User, error)
 	return user, nil
 }
 
+// UpdateJingle sets a user's chosen sign-in jingle and returns the updated domain model.
+// Used by the Discord /jingle command.
+func (s *UserService) UpdateJingle(id int64, jingle string) (*domain.User, error) {
+	user, err := s.Users.UpdateJingle(id, jingle)
+	if err != nil {
+		log.Error("error updating user jingle", "id", id, "err", err)
+		return nil, err
+	}
+	return user, nil
+}
+
 // ListUsers retrieves users matching the optional filter and returns DTO representations
 // Pass empty filter to get all users.
 // Set filter.NameLike for search by name.

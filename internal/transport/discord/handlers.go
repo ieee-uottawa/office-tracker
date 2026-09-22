@@ -157,6 +157,8 @@ func (b *Bot) handleCommand(s *discordgo.Session, i *discordgo.InteractionCreate
 		b.statsCommands.HandleCommand(s, i, cmd.Name)
 	case "mystats":
 		b.myStatsCommands.HandleCommand(s, i, cmd.Name)
+	case "jingle":
+		b.jingleCommands.HandleCommand(s, i, cmd.Name)
 	case "reports":
 		if b.reportsToggleCmd != nil {
 			b.reportsToggleCmd.Handle(s, i)
