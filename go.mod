@@ -4,6 +4,7 @@ go 1.25.6
 
 require (
 	github.com/bwmarrin/discordgo v0.29.0
+	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1

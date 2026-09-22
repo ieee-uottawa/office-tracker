@@ -8,6 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
+
 	"office/internal/app"
 	"office/internal/config"
 	"office/internal/database"
@@ -23,6 +25,13 @@ func main() {
 	var log = logging.Component("main")
 
 	log.Info("Starting office tracker application")
+
+	// Load .env into the process environment if present (local development).
+	// Real environment variables (e.g. set by Docker/systemd) always take
+	// precedence and are left untouched when no .env file exists.
+	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
+		log.Warn("failed to load .env file", "err", err)
+	}
 
 	// Load configuration from environment variables
 	cfg := config.Load()
