@@ -65,7 +65,7 @@ func sendBookingNotice(s *discordgo.Session, n repository.BookingNotification) (
 		return nil, err
 	}
 	if message.ID == "" {
-		return nil, errors.New("Discord returned no notification message ID")
+		return nil, errors.New("discord returned no notification message ID")
 	}
 	return &message, nil
 }

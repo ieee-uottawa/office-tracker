@@ -24,12 +24,6 @@ func notificationTestBooking(t *testing.T, c *Calendar, request string) *reposit
 	return b
 }
 
-type notificationPayload struct {
-	discordgo.MessageSend
-	Nonce        string `json:"nonce"`
-	EnforceNonce bool   `json:"enforce_nonce"`
-}
-
 func notificationPosts(t *testing.T, requests []calendarRequest) []map[string]json.RawMessage {
 	t.Helper()
 	result := []map[string]json.RawMessage{}
