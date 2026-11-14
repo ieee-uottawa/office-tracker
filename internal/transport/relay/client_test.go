@@ -23,7 +23,8 @@ func TestRelayAuthenticatedReplayAndFailure(t *testing.T) {
 	_, err := db.Exec("INSERT INTO users(id,name,rfid_uid) VALUES(1,'Relay test','01020304')")
 	require.NoError(t, err)
 	att := service.NewAttendanceService(&repository.UserRepo{DB: db}, &repository.SessionRepo{DB: db})
-	server := transport.New("0", att, nil, nil, nil, nil, nil, transport.MiddlewareConfig{APIKeyEnabled: true, APIKey: "test-key"})
+	server := transport.New("0", att, nil, nil, nil, nil, nil, transport.MiddlewareConfig{})
+	server.ReaderAPIKey = "test-key"
 	server.Reader = &service.USBReaderService{DB: db, Attendance: att, Health: service.NewESPHealthService(time.Minute)}
 	ts := httptest.NewServer(server.Handler())
 	defer ts.Close()

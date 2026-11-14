@@ -104,6 +104,9 @@ func main() {
 	// or an unsynchronized clock must not take down the card reader.
 	application.HTTP = httptransport.New(cfg.HTTPPort, application.Services.Attendance, application.Services.User, application.Services.Session, application.Services.Stats, application.Services.Environment, reportsService, mwConfig)
 	application.HTTP.Reader = &service.USBReaderService{DB: db, Attendance: application.Services.Attendance, Health: application.HTTP.DeviceHealth}
+	if key := os.Getenv("READER_API_KEY"); key != "" {
+		application.HTTP.ReaderAPIKey = key
+	}
 	application.HTTP.Start()
 	usbDone := make(chan struct{})
 	if path := os.Getenv("USB_READER_PORT"); path != "" {

@@ -48,3 +48,7 @@ go.work
 
 # Logs
 *.log
+
+# Deployment secrets and state
+/deploy/tracker.env
+/deploy/data/

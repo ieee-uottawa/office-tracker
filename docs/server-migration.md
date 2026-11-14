@@ -5,7 +5,9 @@ on ieeeuottawa-server. The Pi runs only `office-reader-relay.service`, forwardin
 the ESP32's USB frames to `http://100.116.212.50:8080/api/reader/request` over
 Tailscale. Firmware and the USB request/response format are unchanged.
 
-The endpoint requires API key authentication even if the rest of the API does not.
+The endpoint requires `READER_API_KEY` authentication even if the rest of the API
+does not (falls back to `API_KEY` when configured). The relay uses this key as
+its `API_KEY`; existing management API authentication remains unchanged.
 The relay holds only `API_KEY`, `READER_SERVER_URL` and `USB_READER_PORT` in
 `/etc/office-reader-relay.env` (root-readable); it has no Discord token or database.
 All request IDs are preserved. SQLite receipts commit with attendance, so retrying

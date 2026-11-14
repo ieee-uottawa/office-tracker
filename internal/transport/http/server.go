@@ -14,6 +14,7 @@ type Server struct {
 	http         *http.Server
 	DeviceHealth *service.ESPHealthService
 	Reader       *service.USBReaderService
+	ReaderAPIKey string
 }
 
 var log = logging.Component("http")
@@ -23,13 +24,13 @@ func New(port string, attSvc *service.AttendanceService, userSvc *service.UserSe
 	mux := http.NewServeMux()
 	espHealthSvc := service.NewESPHealthService(service.DefaultESPHealthMaxAge)
 
-	server := &Server{DeviceHealth: espHealthSvc}
+	server := &Server{DeviceHealth: espHealthSvc, ReaderAPIKey: mwConfig.APIKey}
 	mux.HandleFunc("/api/reader/request", func(w http.ResponseWriter, r *http.Request) {
-		if !mwConfig.APIKeyEnabled || server.Reader == nil {
+		if server.ReaderAPIKey == "" || server.Reader == nil {
 			http.Error(w, "reader unavailable", http.StatusServiceUnavailable)
 			return
 		}
-		ReaderHandler(server.Reader.Handle).ServeHTTP(w, r)
+		apiKeyMiddleware(server.ReaderAPIKey)(ReaderHandler(server.Reader.Handle)).ServeHTTP(w, r)
 	})
 
 	// Health check
