@@ -72,7 +72,10 @@ func Migrate(db *sql.DB) error {
 		return err
 	}
 
-	return nil
+	if err := migrateUSBReader(db); err != nil {
+		return err
+	}
+	return migrateBookings(db)
 }
 
 // addColumnIfMissing adds a column to a table if it doesn't already exist.

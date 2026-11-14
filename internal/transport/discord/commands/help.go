@@ -48,6 +48,11 @@ func (hc *HelpCommands) handleHelp(s *discordgo.Session, i *discordgo.Interactio
 		Color:       ColorBlue,
 		Fields: []*discordgo.MessageEmbedField{
 			{
+				Name:   "Office bookings",
+				Value:  "`/calendar [date]` — shared weekly calendar with navigation\n`/book` — request office time\n`/bookings` — your requests and cancellations\n`/booking-review` — approve/decline (Signing Officer role)",
+				Inline: false,
+			},
+			{
 				Name:   "👤 User Commands",
 				Value:  "`/user-list [search] [limit] [page] [order] [sort_by]`\nList members (defaults: `limit=10`, `page=1`, `order=asc`, `sort_by=name`)\n\n`/user-get <user_id>`\nGet member details\n\n`/user-create <member> <rfid_uid> [name]`\nCreate member (admin) • `name` defaults to selected member display name\n\n`/user-update <user_id> <name> [member] [rfid_uid]`\nUpdate member (admin) • optional `member` relinks Discord account • optional `rfid_uid` updates card tag\n\n`/user-delete <user_id>`\nDelete member (admin)",
 				Inline: false,

@@ -4,6 +4,7 @@ import "time"
 
 // ESPHealthStatus contains the latest heartbeat details from an ESP32 device.
 type ESPHealthStatus struct {
+	Transport       string    `json:"transport,omitempty"`
 	DeviceID        string    `json:"device_id"`
 	UptimeSeconds   int64     `json:"uptime_seconds"`
 	FreeHeapBytes   int64     `json:"free_heap_bytes"`

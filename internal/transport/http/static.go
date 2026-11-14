@@ -431,7 +431,7 @@ func getManagementUI() string {
                         <th>Status</th>
                         <th>Uptime</th>
                         <th>Free Heap</th>
-                        <th>Wi-Fi</th>
+                        <th>Connection</th>
                         <th>RSSI</th>
                         <th>IP</th>
                         <th>Firmware</th>
@@ -1115,7 +1115,7 @@ func getManagementUI() string {
                     healthTbody.innerHTML = deviceHealth.map(function(d) {
                         var statusClass = d.fresh ? 'success' : 'danger';
                         var statusText = d.fresh ? 'Online' : 'Offline';
-                        var wifiText = d.wifi_connected ? 'Connected' : 'Disconnected';
+                        var wifiText = d.transport === 'usb' ? 'USB' : (d.wifi_connected ? 'Wi-Fi' : 'Disconnected');
 
                         return '<tr>' +
                             '<td>' + esc(d.device_id || 'default') + '</td>' +

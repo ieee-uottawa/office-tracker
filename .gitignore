@@ -53,3 +53,6 @@ Thumbs.db
 # Database
 *.db*
 /data
+# Deployment secrets and persistent state
+/deploy/tracker.env
+/deploy/data/

@@ -4,6 +4,7 @@ import "time"
 
 // ESPHealthUpsertRequest is the payload sent by an ESP32 heartbeat.
 type ESPHealthUpsertRequest struct {
+	Transport       string `json:"transport,omitempty"`
 	DeviceID        string `json:"device_id,omitempty"`
 	UptimeSeconds   int64  `json:"uptime_seconds"`
 	FreeHeapBytes   int64  `json:"free_heap_bytes"`
@@ -16,6 +17,7 @@ type ESPHealthUpsertRequest struct {
 
 // ESPHealthStatusResponse is the read model for a device health record.
 type ESPHealthStatusResponse struct {
+	Transport       string    `json:"transport,omitempty"`
 	DeviceID        string    `json:"device_id"`
 	UptimeSeconds   int64     `json:"uptime_seconds"`
 	FreeHeapBytes   int64     `json:"free_heap_bytes"`

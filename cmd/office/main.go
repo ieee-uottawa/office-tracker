@@ -17,6 +17,7 @@ import (
 	"office/internal/service"
 	"office/internal/transport/discord"
 	httptransport "office/internal/transport/http"
+	usbtransport "office/internal/transport/usb"
 )
 
 func main() {
@@ -25,6 +26,8 @@ func main() {
 	var log = logging.Component("main")
 
 	log.Info("Starting office tracker application")
+	runCtx, stopSignal := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopSignal()
 
 	// Load .env into the process environment if present (local development).
 	// Real environment variables (e.g. set by Docker/systemd) always take
@@ -84,11 +87,6 @@ func main() {
 	}
 
 	if bot != nil {
-		// Initialize dashboards by searching for the configured channel name in each guild
-		if err := bot.InitializeDashboards(cfg.DiscordExecGuildID, cfg.DiscordCommunityGuildID, cfg.DiscordDashboardChannelName); err != nil {
-			log.Error("failed to initialize dashboards", "err", err)
-			panic(err)
-		}
 		// Wire attendance-change callback so scans and API-driven check-ins trigger dashboard refresh
 		service.SetAttendanceChangeCallback(func() {
 			if bot != nil {
@@ -101,27 +99,40 @@ func main() {
 			}
 		})
 
-		// Initialize HTTP server with reports service
-		application.HTTP = httptransport.New(cfg.HTTPPort, application.Services.Attendance, application.Services.User, application.Services.Session, application.Services.Stats, application.Services.Environment, reportsService, mwConfig)
-		application.HTTP.Start()
-
-		if err := bot.Start(); err != nil {
-			log.Error("failed to start Discord bot", "err", err)
-			panic(err)
-		}
 	}
-	if bot == nil {
-		// Initialize HTTP server without Discord bot
-		application.HTTP = httptransport.New(cfg.HTTPPort, application.Services.Attendance, application.Services.User, application.Services.Session, application.Services.Stats, application.Services.Environment, nil, mwConfig)
-		application.HTTP.Start()
+	// Local transports must start before any calls to Discord. Internet outages
+	// or an unsynchronized clock must not take down the card reader.
+	application.HTTP = httptransport.New(cfg.HTTPPort, application.Services.Attendance, application.Services.User, application.Services.Session, application.Services.Stats, application.Services.Environment, reportsService, mwConfig)
+	application.HTTP.Reader = &service.USBReaderService{DB: db, Attendance: application.Services.Attendance, Health: application.HTTP.DeviceHealth}
+	application.HTTP.Start()
+	usbDone := make(chan struct{})
+	if path := os.Getenv("USB_READER_PORT"); path != "" {
+		reader := &service.USBReaderService{DB: db, Attendance: application.Services.Attendance, Health: application.HTTP.DeviceHealth}
+		go func() { defer close(usbDone); usbtransport.Run(runCtx, path, reader.Handle) }()
+	} else {
+		close(usbDone)
+	}
+	if bot != nil {
+		for runCtx.Err() == nil {
+			err := bot.InitializeDashboards(cfg.DiscordExecGuildID, cfg.DiscordCommunityGuildID, cfg.DiscordDashboardChannelName)
+			if err == nil {
+				err = bot.Start()
+			}
+			if err == nil {
+				break
+			}
+			log.Error("Discord unavailable; local scanning remains active; retrying", "err", err)
+			select {
+			case <-runCtx.Done():
+			case <-time.After(10 * time.Second):
+			}
+		}
 	}
 
 	log.Info("office-tracker running")
 
 	// Graceful shutdown
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	<-stop
+	<-runCtx.Done()
 
 	log.Info("shutting down...")
 
@@ -142,4 +153,8 @@ func main() {
 
 	// Wait for HTTP to finish
 	<-done
+	select {
+	case <-usbDone:
+	case <-ctx.Done():
+	}
 }

@@ -22,6 +22,8 @@ func (b *Bot) handleInteractionCreate(s *discordgo.Session, i *discordgo.Interac
 		b.handleCommand(s, i)
 	case discordgo.InteractionMessageComponent:
 		b.handleButtonClick(s, i)
+	case discordgo.InteractionModalSubmit:
+		b.calendar.HandleModal(s, i)
 	}
 }
 
@@ -147,6 +149,8 @@ func (b *Bot) handleCommand(s *discordgo.Session, i *discordgo.InteractionCreate
 	}
 
 	switch cmd.Name {
+	case "calendar", "book", "bookings", "booking-review":
+		b.calendar.HandleCommand(s, i)
 	case "setup":
 		b.handleSetupCommand(s, i)
 	case "ping":
@@ -194,6 +198,10 @@ func (b *Bot) handleCommand(s *discordgo.Session, i *discordgo.InteractionCreate
 //   - "view_my_stats_*": Show personal stats for report period
 func (b *Bot) handleButtonClick(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	customID := i.MessageComponentData().CustomID
+	if strings.HasPrefix(customID, "office:") {
+		b.calendar.HandleButton(s, i)
+		return
+	}
 
 	switch customID {
 	case "refresh_btn":

@@ -21,6 +21,7 @@ func (b *Bot) InitializeDashboards(execGuildID, communityGuildID, channelName st
 	dashboards := make(map[string]*Dashboard)
 	var mu sync.Mutex
 	var wg sync.WaitGroup
+	var lookupErr error
 
 	// Helper function to find dashboard channel by guild and register it (runs in goroutine)
 	findAndRegisterDashboard := func(guildID string, serverName string) {
@@ -34,6 +35,9 @@ func (b *Bot) InitializeDashboards(execGuildID, communityGuildID, channelName st
 		// Fetch all channels in the guild
 		channels, err := b.session.GuildChannels(guildID)
 		if err != nil {
+			mu.Lock()
+			lookupErr = err
+			mu.Unlock()
 			log.Warn("failed to fetch guild channels", "server", serverName, "guild_id", guildID, "error", err)
 			return
 		}
@@ -77,6 +81,9 @@ func (b *Bot) InitializeDashboards(execGuildID, communityGuildID, channelName st
 	go findAndRegisterDashboard(execGuildID, "exec")
 	go findAndRegisterDashboard(communityGuildID, "community")
 	wg.Wait()
+	if lookupErr != nil {
+		return fmt.Errorf("fetch dashboard channels: %w", lookupErr)
+	}
 
 	if len(dashboards) == 0 {
 		log.Warn("no office-tracker channels found in any guild")
@@ -170,7 +177,7 @@ func (b *Bot) renderDashboard(channelID string) {
 		return
 	}
 
-	// If MessageID is empty, retrieve the latest message sent by the bot in the channel
+	// Locate the presence embed specifically; other bot messages include the calendar.
 	if dash.MessageID == "" {
 		messages, err := b.session.ChannelMessages(channelID, 50, "", "", "")
 		if err != nil {
@@ -178,7 +185,7 @@ func (b *Bot) renderDashboard(channelID string) {
 		} else {
 			botID := b.session.State.User.ID
 			for _, msg := range messages {
-				if msg.Author != nil && msg.Author.ID == botID {
+				if isPresenceDashboardMessage(msg, botID) {
 					dash.MessageID = msg.ID
 					log.Info("dashboard message found", "channel_id", channelID, "message_id", dash.MessageID)
 					break
@@ -221,4 +228,42 @@ func (b *Bot) renderDashboard(channelID string) {
 	}
 
 	log.Debug("dashboard rendered", "channel_id", channelID, "members_count", len(sessions))
+}
+
+// Only a presence dashboard may be reused for presence updates.
+func isPresenceDashboardMessage(msg *discordgo.Message, botID string) bool {
+	if msg == nil || msg.Author == nil || msg.Author.ID != botID {
+		return false
+	}
+	presence := false
+	for _, embed := range msg.Embeds {
+		if embed != nil && embed.Title == "🏢 Office Presence" {
+			presence = true
+		}
+	}
+	if !presence {
+		return false
+	}
+	for _, component := range msg.Components {
+		var children []discordgo.MessageComponent
+		switch row := component.(type) {
+		case discordgo.ActionsRow:
+			children = row.Components
+		case *discordgo.ActionsRow:
+			children = row.Components
+		}
+		for _, child := range children {
+			switch button := child.(type) {
+			case discordgo.Button:
+				if button.CustomID == "refresh_btn" {
+					return true
+				}
+			case *discordgo.Button:
+				if button.CustomID == "refresh_btn" {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

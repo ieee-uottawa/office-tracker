@@ -80,8 +80,14 @@ CORS_ORIGINS=http://localhost:3000
 /reports                     # View reports availability + status (admin)
 /reports weekly:false        # Disable weekly reports only (admin)
 /reports monthly:true        # Enable monthly reports only (admin)
+/calendar [date]              # Shared weekly office booking calendar
+/book                         # Request office time
+/bookings                     # View/cancel your bookings
+/booking-review               # Approve/decline requests (Signing Officer)
 /help                         # Show available commands
 ```
+
+See [Office bookings](docs/office-bookings.md) for the booking workflow and permissions.
 
 ### HTTP API
 

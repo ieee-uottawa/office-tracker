@@ -1,0 +1,23 @@
+[Unit]
+Description=Office ESP32 USB relay to ieeeuottawa-server
+After=network-online.target tailscaled.service
+Wants=network-online.target
+Conflicts=office-tracker.service
+
+[Service]
+Type=simple
+User=office-tracker
+Group=office-tracker
+SupplementaryGroups=dialout
+EnvironmentFile=/etc/office-reader-relay.env
+ExecStartPre=-/usr/bin/stty -F /dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_c87aef6c8a1cef119ed2a0d94909ffd0-if00-port0 -hupcl
+ExecStart=/opt/office-reader-relay/reader-relay
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

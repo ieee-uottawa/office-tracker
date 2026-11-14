@@ -1,0 +1,28 @@
+services:
+  office-tracker:
+    image: office-tracker:server-migration
+    container_name: ieee-office-tracker
+    restart: unless-stopped
+    ports:
+      - "100.116.212.50:8080:8080"
+      - "127.0.0.1:8080:8080"
+    env_file: tracker.env
+    environment:
+      HTTP_PORT: "8080"
+      DB_PATH: /data/office.db
+      TZ: America/Toronto
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: [CMD, wget, --quiet, --tries=1, --spider, http://localhost:8080/health]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ieee-cloudflare-net
+      - ieee-monitoring-net
+networks:
+  ieee-cloudflare-net:
+    external: true
+  ieee-monitoring-net:
+    external: true

@@ -42,6 +42,7 @@ func (h *ESPHealthHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.healthSvc.Update(domain.ESPHealthStatus{
+		Transport:       req.Transport,
 		DeviceID:        req.DeviceID,
 		UptimeSeconds:   req.UptimeSeconds,
 		FreeHeapBytes:   req.FreeHeapBytes,
@@ -66,6 +67,7 @@ func (h *ESPHealthHandler) List(w http.ResponseWriter, r *http.Request) {
 	response := make([]dto.ESPHealthStatusResponse, 0, len(items))
 	for _, item := range items {
 		response = append(response, dto.ESPHealthStatusResponse{
+			Transport:       item.Transport,
 			DeviceID:        item.DeviceID,
 			UptimeSeconds:   item.UptimeSeconds,
 			FreeHeapBytes:   item.FreeHeapBytes,

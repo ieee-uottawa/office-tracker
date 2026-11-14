@@ -11,6 +11,7 @@ import (
 
 // Services holds all application services.
 type Services struct {
+	Booking     *service.BookingService
 	Attendance  *service.AttendanceService
 	User        *service.UserService
 	Session     *service.SessionService
@@ -47,6 +48,7 @@ func New(db *sql.DB, httpPort string, mwConfig httptransport.MiddlewareConfig) *
 	}
 
 	services := &Services{
+		Booking:    &service.BookingService{Repo: &repository.BookingRepo{DB: db}},
 		Attendance: service.NewAttendanceService(repos.User, repos.Session),
 		User: &service.UserService{
 			Users: repos.User,

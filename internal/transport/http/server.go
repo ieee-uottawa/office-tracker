@@ -11,7 +11,9 @@ import (
 )
 
 type Server struct {
-	http *http.Server
+	http         *http.Server
+	DeviceHealth *service.ESPHealthService
+	Reader       *service.USBReaderService
 }
 
 var log = logging.Component("http")
@@ -20,6 +22,15 @@ var log = logging.Component("http")
 func New(port string, attSvc *service.AttendanceService, userSvc *service.UserService, sessionSvc *service.SessionService, statsSvc *service.OfficeStatsService, environmentSvc *service.EnvironmentService, reportsSvc *service.ReportsService, mwConfig MiddlewareConfig) *Server {
 	mux := http.NewServeMux()
 	espHealthSvc := service.NewESPHealthService(service.DefaultESPHealthMaxAge)
+
+	server := &Server{DeviceHealth: espHealthSvc}
+	mux.HandleFunc("/api/reader/request", func(w http.ResponseWriter, r *http.Request) {
+		if !mwConfig.APIKeyEnabled || server.Reader == nil {
+			http.Error(w, "reader unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		ReaderHandler(server.Reader.Handle).ServeHTTP(w, r)
+	})
 
 	// Health check
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -181,12 +192,11 @@ func New(port string, attSvc *service.AttendanceService, userSvc *service.UserSe
 	// Apply middleware chain
 	handler := ChainMiddleware(mux, middlewares...)
 
-	return &Server{
-		http: &http.Server{
-			Addr:    ":" + port,
-			Handler: handler,
-		},
+	server.http = &http.Server{
+		Addr:    ":" + port,
+		Handler: handler,
 	}
+	return server
 }
 
 // Start runs the HTTP server in a separate goroutine.

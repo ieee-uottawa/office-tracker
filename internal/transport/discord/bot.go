@@ -42,6 +42,7 @@ type Dashboard struct {
 // It handles slash commands, button interactions, and dashboard rendering.
 // The bot is null-safe - all methods check if b == nil before executing.
 type Bot struct {
+	calendar *Calendar
 	// Discord session and services
 	session  *discordgo.Session
 	services *app.Services
@@ -105,6 +106,7 @@ func New(token string, services *app.Services, execGuildID string, communityGuil
 	}
 
 	bot := &Bot{
+		calendar:            NewCalendar(services.Booking, execGuildID),
 		session:             s,
 		services:            services,
 		dashboards:          make(map[string]*Dashboard),
@@ -184,6 +186,7 @@ func (b *Bot) RegisterSlashCommands() error {
 	execCmds = append(execCmds, reportsToggleCmds...)
 	execCmds = append(execCmds, scanHistoryCmds...)
 	execCmds = append(execCmds, jingleCmds...)
+	execCmds = append(execCmds, calendarCommandDefinitions()...)
 
 	// Define guild-specific commands
 	guildCommands := map[string][]*discordgo.ApplicationCommand{
@@ -224,6 +227,8 @@ func (b *Bot) RegisterSlashCommands() error {
 // dashboardRefresher periodically updates dashboards every 5 minutes
 // Also handles on-demand render requests from the renderChan
 func (b *Bot) dashboardRefresher() {
+	notificationTicker := time.NewTicker(30 * time.Second)
+	defer notificationTicker.Stop()
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
@@ -232,11 +237,17 @@ func (b *Bot) dashboardRefresher() {
 		case <-ticker.C:
 			log.Info("Periodic dashboard refresh triggered")
 			b.renderAllDashboards()
+			b.calendar.Refresh(b.session)
 
 		case <-b.renderChan:
 			// On-demand render request (e.g., from RFID scan)
 			log.Info("On-demand dashboard refresh triggered")
 			b.renderAllDashboards()
+
+		case <-notificationTicker.C:
+			if err := b.calendar.DeliverNotifications(b.session); err != nil {
+				log.Error("booking notification retry failed", "err", err)
+			}
 
 		case <-b.stopChan:
 			return
@@ -269,6 +280,7 @@ func (b *Bot) Start() error {
 	if b == nil {
 		return nil
 	}
+	b.calendar.SetDefaultChannel(b.execChannelID)
 	log.Info("Discord bot starting")
 	if err := b.session.Open(); err != nil {
 		return err
@@ -276,12 +288,14 @@ func (b *Bot) Start() error {
 
 	// Register commands
 	if err := b.RegisterSlashCommands(); err != nil {
+		b.session.Close()
 		return err
 	}
 
 	log.Info("Discord bot ready, refreshing dashboard")
 	// Immediately refresh dashboards on startup
 	b.renderAllDashboards()
+	b.calendar.Refresh(b.session)
 
 	// Start refresh ticker
 	go b.dashboardRefresher()
