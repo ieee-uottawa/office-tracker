@@ -22,6 +22,10 @@ func (b *Bot) handleInteractionCreate(s *discordgo.Session, i *discordgo.Interac
 		b.handleCommand(s, i)
 	case discordgo.InteractionMessageComponent:
 		b.handleButtonClick(s, i)
+	case discordgo.InteractionApplicationCommandAutocomplete:
+		if IsBookingCommand(i.ApplicationCommandData().Name) {
+			b.calendar.HandleAutocomplete(s, i)
+		}
 	case discordgo.InteractionModalSubmit:
 		b.calendar.HandleModal(s, i)
 	}
@@ -149,7 +153,7 @@ func (b *Bot) handleCommand(s *discordgo.Session, i *discordgo.InteractionCreate
 	}
 
 	switch cmd.Name {
-	case "calendar", "book", "bookings", "booking-review":
+	case "calendar", "book", "bookings", "office-review", "office-admin":
 		b.calendar.HandleCommand(s, i)
 	case "setup":
 		b.handleSetupCommand(s, i)
