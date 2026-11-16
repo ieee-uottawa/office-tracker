@@ -42,7 +42,9 @@ type Dashboard struct {
 // It handles slash commands, button interactions, and dashboard rendering.
 // The bot is null-safe - all methods check if b == nil before executing.
 type Bot struct {
-	calendar *Calendar
+	calendar              *Calendar
+	bookingRefreshMu      sync.Mutex
+	bookingRefreshPending bool
 	// Discord session and services
 	session  *discordgo.Session
 	services *app.Services
@@ -231,6 +233,8 @@ func (b *Bot) dashboardRefresher() {
 	defer notificationTicker.Stop()
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
+	nameTicker := time.NewTicker(24 * time.Hour)
+	defer nameTicker.Stop()
 
 	for {
 		select {
@@ -245,9 +249,12 @@ func (b *Bot) dashboardRefresher() {
 			b.renderAllDashboards()
 
 		case <-notificationTicker.C:
-			if err := b.calendar.DeliverNotifications(b.session); err != nil {
-				log.Error("booking notification retry failed", "err", err)
-			}
+			// Expire undecided requests, queue short-notice reminders and
+			// deliver (or retry) booking notifications.
+			b.calendar.Maintain(b.session)
+
+		case <-nameTicker.C:
+			b.syncMemberNames()
 
 		case <-b.stopChan:
 			return
@@ -296,6 +303,8 @@ func (b *Bot) Start() error {
 	// Immediately refresh dashboards on startup
 	b.renderAllDashboards()
 	b.calendar.Refresh(b.session)
+
+	go b.syncMemberNames()
 
 	// Start refresh ticker
 	go b.dashboardRefresher()
@@ -366,4 +375,77 @@ func (b *Bot) Stop() {
 // Helper function to create string pointer
 func stringPtr(s string) *string {
 	return &s
+}
+
+// RefreshBookings redraws the shared calendar and delivers booking
+// notifications soon after a change made outside Discord (the website).
+// Calls within a second are combined into one refresh.
+func (b *Bot) RefreshBookings() {
+	if b == nil || b.calendar == nil {
+		return
+	}
+	b.bookingRefreshMu.Lock()
+	defer b.bookingRefreshMu.Unlock()
+	if b.bookingRefreshPending {
+		return
+	}
+	b.bookingRefreshPending = true
+	time.AfterFunc(time.Second, func() {
+		b.bookingRefreshMu.Lock()
+		b.bookingRefreshPending = false
+		b.bookingRefreshMu.Unlock()
+		b.calendar.Refresh(b.session)
+	})
+}
+
+// ApplicationID returns the bot's Discord application ID (the OAuth2 client ID).
+func ApplicationID(token string) (string, error) {
+	s, err := discordgo.New("Bot " + token)
+	if err != nil {
+		return "", err
+	}
+	app, err := s.Application("@me")
+	if err != nil {
+		return "", err
+	}
+	return app.ID, nil
+}
+
+// syncMemberNames copies current exec-server names onto members and upcoming
+// bookings so the dashboard, stats and calendar don't show stale names.
+func (b *Bot) syncMemberNames() {
+	if b == nil || b.session == nil || b.execGuildID == "" {
+		return
+	}
+	names := map[string]string{}
+	after := ""
+	for {
+		page, err := b.session.GuildMembers(b.execGuildID, after, 1000)
+		if err != nil {
+			log.Error("member name sync failed", "err", err)
+			return
+		}
+		for _, m := range page {
+			if m.User != nil && !m.User.Bot {
+				names[m.User.ID] = memberName(m)
+			}
+		}
+		if len(page) < 1000 {
+			break
+		}
+		after = page[len(page)-1].User.ID
+	}
+	changed, err := b.services.User.SyncNames(names)
+	if err != nil {
+		log.Error("member name sync failed", "err", err)
+	}
+	if b.services.Booking != nil {
+		if err := b.services.Booking.Repo.RefreshNames(b.execGuildID, names, time.Now()); err != nil {
+			log.Error("booking name sync failed", "err", err)
+		}
+	}
+	log.Info("member names synced from Discord", "changed", changed)
+	if changed > 0 {
+		b.TriggerRender()
+	}
 }

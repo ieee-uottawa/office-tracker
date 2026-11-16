@@ -80,10 +80,11 @@ CORS_ORIGINS=http://localhost:3000
 /reports                     # View reports availability + status (admin)
 /reports weekly:false        # Disable weekly reports only (admin)
 /reports monthly:true        # Enable monthly reports only (admin)
-/calendar [date]              # Shared weekly office booking calendar
-/book                         # Request office time
-/bookings                     # View/cancel your bookings
-/booking-review               # Approve/decline requests (Signing Officer)
+/book                         # Request office time (autocompletes free times)
+/bookings                     # See, change or cancel your bookings
+/calendar [date]              # See any week of the office calendar privately
+/office-review                # Approve, decline or revoke bookings (approvers)
+/office-admin                 # Booking roles and channels (Manage Server)
 /help                         # Show available commands
 ```
 

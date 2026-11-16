@@ -12,6 +12,9 @@ import (
 
 type Server struct {
 	http         *http.Server
+	mux          *http.ServeMux
+	mwConfig     MiddlewareConfig
+	web          *webApp
 	DeviceHealth *service.ESPHealthService
 	Reader       *service.USBReaderService
 	ReaderAPIKey string
@@ -41,9 +44,8 @@ func New(port string, attSvc *service.AttendanceService, userSvc *service.UserSe
 	// Prometheus metrics endpoint
 	mux.Handle("/metrics", NewMetricsHandler(sessionSvc, environmentSvc, espHealthSvc))
 
-	// Management UI
-	mux.HandleFunc("/", UIHandler())
-	mux.HandleFunc("/ui", UIHandler())
+	// Website (booking calendar and admin) when configured, otherwise the legacy management UI.
+	mux.HandleFunc("/", server.serveRoot)
 
 	// RFID endpoint
 	mux.Handle("/api/rfid/scan", RfidHandler(attSvc))
@@ -193,11 +195,36 @@ func New(port string, attSvc *service.AttendanceService, userSvc *service.UserSe
 	// Apply middleware chain
 	handler := ChainMiddleware(mux, middlewares...)
 
+	server.mux, server.mwConfig = mux, mwConfig
 	server.http = &http.Server{
 		Addr:    ":" + port,
 		Handler: handler,
 	}
 	return server
+}
+
+func (s *Server) serveRoot(w http.ResponseWriter, r *http.Request) {
+	if s.web != nil {
+		s.web.ServeHTTP(w, r)
+		return
+	}
+	UIHandler()(w, r)
+}
+
+// EnableWeb turns on the signed-in website and protects the management API
+// with an admin session or the API key. Call it before Start.
+func (s *Server) EnableWeb(cfg WebConfig) error {
+	app, err := newWebApp(cfg)
+	if err != nil {
+		return err
+	}
+	s.web = app
+	middlewares := []func(http.Handler) http.Handler{loggingMiddleware}
+	if s.mwConfig.CORSEnabled {
+		middlewares = append(middlewares, corsMiddleware(s.mwConfig.CORSOrigins))
+	}
+	s.http.Handler = ChainMiddleware(app.gate(s.mwConfig.APIKeyEnabled, s.mux), middlewares...)
+	return nil
 }
 
 // Start runs the HTTP server in a separate goroutine.

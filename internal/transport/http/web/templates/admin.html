@@ -1,0 +1,371 @@
+{{define "content"}}
+<section class="relative w-full pt-12 md:pt-16">
+  <div class="container">
+    <h1 class="page-title">Admin</h1>
+    <nav class="tab-row mt-8" role="tablist" aria-label="Admin sections">
+      <a href="#dashboard" class="nav-item" role="tab" id="tab-dashboard" aria-controls="panel-dashboard" data-tab="dashboard">Dashboard</a>
+      <a href="#users" class="nav-item" role="tab" id="tab-users" aria-controls="panel-users" data-tab="users">Users</a>
+      <a href="#sessions" class="nav-item" role="tab" id="tab-sessions" aria-controls="panel-sessions" data-tab="sessions">Sessions</a>
+      <a href="#scans" class="nav-item" role="tab" id="tab-scans" aria-controls="panel-scans" data-tab="scans">Scans</a>
+      <a href="#reports" class="nav-item" role="tab" id="tab-reports" aria-controls="panel-reports" data-tab="reports">Reports</a>
+    </nav>
+  </div>
+</section>
+
+<div class="container pb-12 pt-10 md:pb-16 md:pt-12">
+
+  <!-- Dashboard -->
+  <div id="panel-dashboard" role="tabpanel" aria-labelledby="tab-dashboard" data-panel="dashboard" class="space-y-12 md:space-y-16" hidden>
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="meta" data-dash-updated>Loading</p>
+        <div class="toolbar">
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox" data-autorefresh> Refresh every 30 s</label>
+          <button type="button" class="btn btn-outline btn-sm" data-action="dashboard-refresh">Refresh</button>
+        </div>
+      </div>
+      <div class="stat-grid grid-cols-2 lg:grid-cols-5">
+        <div class="stat col-span-2 lg:col-span-1"><span class="stat-value" data-stat="active">—</span><span class="stat-label">In the office</span></div>
+        <div class="stat"><span class="stat-value" data-stat="users">—</span><span class="stat-label">Members</span></div>
+        <div class="stat"><span class="stat-value" data-stat="sessions">—</span><span class="stat-label">Sessions</span></div>
+        <div class="stat"><span class="stat-value" data-stat="scans">—</span><span class="stat-label">Recent scans</span></div>
+        <div class="stat"><span class="stat-value" data-stat="temperature">—</span><span class="stat-label" data-stat="temperature-label">Temperature</span></div>
+      </div>
+    </div>
+
+    <section aria-labelledby="presence-heading">
+      <header class="section-head">
+        <h2 id="presence-heading">In the office</h2>
+        <button type="button" class="btn btn-outline btn-sm" data-action="checkout-all" data-confirm>Check out all</button>
+      </header>
+      <ul data-presence></ul>
+    </section>
+
+    <section aria-labelledby="devices-heading">
+      <header class="section-head">
+        <h2 id="devices-heading">Devices</h2>
+        <span class="meta" data-devices-meta></span>
+      </header>
+      <div class="relative overflow-x-auto">
+        <table class="table whitespace-nowrap">
+          <thead><tr><th>Device</th><th>Status</th><th>Last report</th><th>Uptime</th><th>Free heap</th><th>Connection</th><th>RSSI</th><th>IP</th><th>Firmware</th><th>Reset reason</th></tr></thead>
+          <tbody data-devices></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Users -->
+  <div id="panel-users" role="tabpanel" aria-labelledby="tab-users" data-panel="users" hidden>
+    <section aria-labelledby="users-heading">
+      <header class="section-head">
+        <h2 id="users-heading">Members</h2>
+        <span class="meta" data-users-meta></span>
+      </header>
+      <div class="toolbar">
+        <button type="button" class="btn btn-default btn-sm" data-action="user-new">Add member</button>
+        <button type="button" class="btn btn-outline btn-sm" data-action="users-import">Import CSV</button>
+        <a href="/api/users/export" class="btn btn-outline btn-sm" data-users-export>Export CSV</a>
+        <input type="file" accept=".csv,text/csv" class="sr-only" tabindex="-1" aria-hidden="true" data-users-file>
+      </div>
+      <form class="mt-8 grid grid-cols-2 items-end gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]" data-users-filters>
+        <div class="field col-span-2 lg:col-span-1">
+          <label class="label" for="users-search">Name</label>
+          <input id="users-search" name="search" type="search" class="input" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="label" for="users-sort">Sort by</label>
+          <select id="users-sort" name="sort_by" class="select"><option value="name">Name</option><option value="created_at">Date added</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="users-order">Order</label>
+          <select id="users-order" name="order" class="select"><option value="asc">Ascending</option><option value="desc">Descending</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="users-limit">Per page</label>
+          <input id="users-limit" name="limit" type="number" min="1" max="500" value="50" class="input tabular-nums">
+        </div>
+        <button type="reset" class="btn btn-ghost btn-sm justify-self-start">Reset</button>
+      </form>
+      <div class="relative mt-8 overflow-x-auto">
+        <table class="table whitespace-nowrap">
+          <thead><tr><th>ID</th><th>Name</th><th>RFID UID</th><th>Discord ID</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody data-users></tbody>
+        </table>
+      </div>
+      <nav class="mt-6 flex items-center justify-between gap-4" aria-label="Members pages" data-pager="users">
+        <span class="meta tabular-nums" data-pager-label></span>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-outline btn-sm" data-pager-prev>Previous</button>
+          <button type="button" class="btn btn-outline btn-sm" data-pager-next>Next</button>
+        </div>
+      </nav>
+    </section>
+  </div>
+
+  <!-- Sessions -->
+  <div id="panel-sessions" role="tabpanel" aria-labelledby="tab-sessions" data-panel="sessions" hidden>
+    <section aria-labelledby="sessions-heading">
+      <header class="section-head">
+        <h2 id="sessions-heading">Sessions</h2>
+        <span class="meta tabular-nums" data-sessions-meta></span>
+      </header>
+      <div class="toolbar">
+        <button type="button" class="btn btn-outline btn-sm" data-action="sessions-refresh">Refresh</button>
+        <a href="/api/sessions/export" class="btn btn-outline btn-sm" data-sessions-export>Download CSV</a>
+        <a href="/api/sessions/export?limit=0" class="btn btn-outline btn-sm" data-sessions-export-all>Download all</a>
+        <button type="button" class="btn btn-outline btn-sm" data-action="sessions-delete-shown" data-confirm>Delete shown</button>
+      </div>
+      <form class="mt-8 grid grid-cols-2 items-end gap-4 lg:grid-cols-5" data-sessions-filters>
+        <div class="field">
+          <label class="label" for="sessions-name">Name</label>
+          <input id="sessions-name" name="name" type="search" class="input" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-user">User ID</label>
+          <input id="sessions-user" name="user_id" type="number" min="1" class="input tabular-nums">
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-discord">Discord ID</label>
+          <input id="sessions-discord" name="discord_id" type="text" inputmode="numeric" class="input" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-from">From</label>
+          <input id="sessions-from" name="from" type="date" class="input">
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-to">To</label>
+          <input id="sessions-to" name="to" type="date" class="input">
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-status">Status</label>
+          <select id="sessions-status" name="status" class="select"><option value="all">All</option><option value="active">Active</option><option value="completed">Completed</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-method">Sign-out method</label>
+          <select id="sessions-method" name="check_out_method" class="select"><option value="all">All</option><option value="rfid">RFID</option><option value="discord">Discord</option><option value="api">API</option><option value="auto">Auto</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-sort">Sort by</label>
+          <select id="sessions-sort" name="sort_by" class="select"><option value="check_in">Check-in</option><option value="check_out">Check-out</option><option value="user_name">Name</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-order">Order</label>
+          <select id="sessions-order" name="order" class="select"><option value="desc">Descending</option><option value="asc">Ascending</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="sessions-limit">Per page</label>
+          <input id="sessions-limit" name="limit" type="number" min="1" max="500" value="100" class="input tabular-nums">
+        </div>
+        <button type="reset" class="btn btn-ghost btn-sm col-span-2 justify-self-start lg:col-span-5">Reset filters</button>
+      </form>
+      <div class="relative mt-8 overflow-x-auto">
+        <table class="table whitespace-nowrap">
+          <thead><tr><th>Name</th><th>Check-in</th><th>Check-out</th><th>Duration</th><th>Status</th><th>Sign-out</th><th><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody data-sessions></tbody>
+        </table>
+      </div>
+      <nav class="mt-6 flex items-center justify-between gap-4" aria-label="Session pages" data-pager="sessions">
+        <span class="meta tabular-nums" data-pager-label></span>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-outline btn-sm" data-pager-prev>Previous</button>
+          <button type="button" class="btn btn-outline btn-sm" data-pager-next>Next</button>
+        </div>
+      </nav>
+    </section>
+  </div>
+
+  <!-- Scans -->
+  <div id="panel-scans" role="tabpanel" aria-labelledby="tab-scans" data-panel="scans" hidden>
+    <section aria-labelledby="scans-heading">
+      <header class="section-head">
+        <h2 id="scans-heading">Scans</h2>
+        <span class="meta tabular-nums" data-scans-meta></span>
+      </header>
+      <div class="toolbar">
+        <button type="button" class="btn btn-outline btn-sm" data-action="scans-refresh">Refresh</button>
+        <button type="button" class="btn btn-outline btn-sm" data-action="scans-clear" data-confirm>Clear history</button>
+      </div>
+      <div class="relative mt-8 overflow-x-auto">
+        <table class="table whitespace-nowrap">
+          <thead><tr><th>Time</th><th>UID</th><th>Name</th><th>Card</th><th>Action</th></tr></thead>
+          <tbody data-scans></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Reports -->
+  <div id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" data-panel="reports" class="space-y-12 md:space-y-16" hidden>
+    <section aria-labelledby="scheduled-heading">
+      <header class="section-head">
+        <h2 id="scheduled-heading">Scheduled reports</h2>
+        <span class="kicker text-muted-foreground" data-scheduled-status></span>
+      </header>
+      <div class="flex flex-wrap gap-x-8 gap-y-3">
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox" data-scheduled="weekly" disabled> Weekly report</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox" data-scheduled="monthly" disabled> Monthly report</label>
+      </div>
+      <p class="mt-4 text-sm text-muted-foreground" data-scheduled-note hidden>Reports can't be turned on until the bot has a report server and channel configured.</p>
+    </section>
+
+    <section aria-labelledby="stats-heading">
+      <header class="section-head">
+        <h2 id="stats-heading">Statistics</h2>
+        <span class="meta tabular-nums" data-period-label></span>
+      </header>
+      <form class="flex flex-wrap items-end gap-4" data-period-form>
+        <div class="field">
+          <span class="label block">Period</span>
+          <div class="btn-group flex" role="group" aria-label="Period">
+            <button type="button" class="btn btn-outline btn-sm" data-range="weekly" aria-pressed="true">Week</button>
+            <button type="button" class="btn btn-outline btn-sm" data-range="monthly" aria-pressed="false">Month</button>
+            <button type="button" class="btn btn-outline btn-sm" data-range="custom" aria-pressed="false">Custom</button>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end gap-4" data-custom-range hidden>
+          <div class="field">
+            <label class="label" for="period-from">From</label>
+            <input id="period-from" name="from" type="date" class="input">
+          </div>
+          <div class="field">
+            <label class="label" for="period-to">To</label>
+            <input id="period-to" name="to" type="date" class="input">
+          </div>
+          <button type="submit" class="btn btn-default btn-sm">Apply</button>
+        </div>
+        <label class="flex min-h-9 items-center gap-2 text-sm"><input type="checkbox" class="checkbox" name="include_auto"> Include non-RFID check-outs</label>
+        <button type="reset" class="btn btn-ghost btn-sm">Reset</button>
+      </form>
+      <div class="stat-grid mt-8 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        <div class="stat"><span class="stat-value" data-report="hours">—</span><span class="stat-label">Hours</span></div>
+        <div class="stat"><span class="stat-value" data-report="visits">—</span><span class="stat-label">Visits</span></div>
+        <div class="stat"><span class="stat-value" data-report="users">—</span><span class="stat-label">Members</span></div>
+        <div class="stat"><span class="stat-value" data-report="days">—</span><span class="stat-label">Active days</span></div>
+        <div class="stat"><span class="stat-value" data-report="avg">—</span><span class="stat-label">Hours per member</span></div>
+        <div class="stat"><span class="stat-value whitespace-normal text-2xl leading-tight md:text-3xl" data-report="top">—</span><span class="font-mono text-sm tabular-nums empty:hidden" data-report="top-hours"></span><span class="stat-label">Most hours</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="leaderboard-heading">
+      <header class="section-head">
+        <h2 id="leaderboard-heading">Leaderboard</h2>
+        <span class="meta" data-leaderboard-meta></span>
+      </header>
+      <form class="flex flex-wrap items-end gap-4" data-leaderboard-form>
+        <div class="field w-40">
+          <label class="label" for="leaderboard-rank">Rank by</label>
+          <select id="leaderboard-rank" name="rank_by" class="select"><option value="hours">Hours</option><option value="visits">Visits</option></select>
+        </div>
+        <div class="field w-28">
+          <label class="label" for="leaderboard-limit">Show</label>
+          <input id="leaderboard-limit" name="limit" type="number" min="1" max="50" value="10" class="input tabular-nums">
+        </div>
+      </form>
+      <div class="relative mt-8 overflow-x-auto">
+        <table class="table whitespace-nowrap">
+          <thead><tr><th class="w-12">Rank</th><th>Name</th><th class="text-right">Hours</th><th class="text-right">Visits</th><th class="text-right">Active days</th><th class="text-right">Avg session (h)</th></tr></thead>
+          <tbody data-leaderboard></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="member-heading">
+      <header class="section-head">
+        <h2 id="member-heading">Member</h2>
+        <span class="meta tabular-nums" data-member-meta></span>
+      </header>
+      <div class="field max-w-sm">
+        <label class="label" for="member-select">Name</label>
+        <select id="member-select" class="select" data-member-select></select>
+      </div>
+      <div class="stat-grid mt-8 grid-cols-2 md:grid-cols-5">
+        <div class="stat"><span class="stat-value" data-member="hours">—</span><span class="stat-label">Hours</span></div>
+        <div class="stat"><span class="stat-value" data-member="visits">—</span><span class="stat-label">Visits</span></div>
+        <div class="stat"><span class="stat-value" data-member="days">—</span><span class="stat-label">Active days</span></div>
+        <div class="stat"><span class="stat-value" data-member="avg">—</span><span class="stat-label">Avg session (h)</span></div>
+        <div class="stat"><span class="stat-value" data-member="hours-pct">—</span><span class="stat-label">Share of hours</span></div>
+        <div class="stat"><span class="stat-value" data-member="visits-pct">—</span><span class="stat-label">Share of visits</span></div>
+        <div class="stat"><span class="stat-value" data-member="hours-rank">—</span><span class="stat-label">Rank by hours</span></div>
+        <div class="stat"><span class="stat-value" data-member="visits-rank">—</span><span class="stat-label">Rank by visits</span></div>
+        <div class="stat"><span class="stat-value text-2xl md:text-3xl" data-member="first">—</span><span class="stat-label">First visit</span></div>
+        <div class="stat"><span class="stat-value text-2xl md:text-3xl" data-member="last">—</span><span class="stat-label">Last visit</span></div>
+      </div>
+      <h3 class="mt-10 font-display text-xl font-medium">Recent sessions</h3>
+      <div class="relative mt-4 overflow-x-auto">
+        <table class="table whitespace-nowrap">
+          <thead><tr><th>Check-in</th><th>Check-out</th><th>Sign-out</th><th class="text-right">Duration (h)</th></tr></thead>
+          <tbody data-member-sessions></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Member form -->
+<div class="drawer" data-drawer="user" hidden>
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <form class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="user-drawer-title" data-user-form novalidate>
+    <div class="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
+      <h2 id="user-drawer-title" class="font-display text-2xl font-medium" data-user-form-title>Add member</h2>
+      <button type="button" class="btn btn-ghost btn-icon" data-drawer-close aria-label="Close">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="flex-1 space-y-6 px-6 py-6">
+      <input type="hidden" name="id">
+      <div class="field">
+        <label class="label" for="user-name">Name</label>
+        <input id="user-name" name="name" type="text" class="input" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="label" for="user-rfid">RFID UID</label>
+        <input id="user-rfid" name="rfid_uid" type="text" class="input font-mono" required autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label class="label" for="user-discord">Discord ID</label>
+        <input id="user-discord" name="discord_id" type="text" inputmode="numeric" class="input font-mono" required autocomplete="off" spellcheck="false">
+      </div>
+      <p class="text-sm font-medium empty:hidden" data-form-error role="alert"></p>
+    </div>
+    <div class="flex gap-3 border-t border-border px-6 py-5">
+      <button type="submit" class="btn btn-default">Save</button>
+      <button type="button" class="btn btn-ghost" data-drawer-close>Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Session form -->
+<div class="drawer" data-drawer="session" hidden>
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <form class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="session-drawer-title" data-session-form novalidate>
+    <div class="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
+      <div class="min-w-0">
+        <h2 id="session-drawer-title" class="font-display text-2xl font-medium">Edit session</h2>
+        <p class="meta mt-1 truncate" data-session-form-meta></p>
+      </div>
+      <button type="button" class="btn btn-ghost btn-icon" data-drawer-close aria-label="Close">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="flex-1 space-y-6 px-6 py-6">
+      <input type="hidden" name="id">
+      <div class="field">
+        <label class="label" for="session-in">Check-in</label>
+        <input id="session-in" name="check_in" type="datetime-local" class="input" required>
+      </div>
+      <div class="field">
+        <label class="label" for="session-out">Check-out</label>
+        <input id="session-out" name="check_out" type="datetime-local" class="input">
+        <p class="meta" data-session-out-note></p>
+      </div>
+      <p class="text-sm font-medium empty:hidden" data-form-error role="alert"></p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3 border-t border-border px-6 py-5">
+      <button type="submit" class="btn btn-default">Save</button>
+      <button type="button" class="btn btn-ghost" data-drawer-close>Cancel</button>
+      <button type="button" class="btn btn-outline ml-auto" data-action="session-delete-current" data-confirm>Delete</button>
+    </div>
+  </form>
+</div>
+{{end}}

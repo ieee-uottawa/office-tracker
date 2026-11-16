@@ -49,7 +49,7 @@ func (hc *HelpCommands) handleHelp(s *discordgo.Session, i *discordgo.Interactio
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:   "Office bookings",
-				Value:  "`/calendar [date]` — shared weekly calendar with navigation\n`/book` — request office time\n`/bookings` — your requests and cancellations\n`/booking-review` — approve/decline (Signing Officer role)",
+				Value:  "`/book` — request office time (or **Book office time** under the calendar)\n`/bookings` — see, change or cancel your bookings\n`/calendar [date]` — see any week privately\n`/office-review` — approve, decline or revoke (approvers)\n`/office-admin` — roles and channels (server admins)",
 				Inline: false,
 			},
 			{
