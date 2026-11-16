@@ -1,0 +1,208 @@
+/*
+ * Office tracker styles. The base layer is globals.css from
+ * ieee-webmaster/ieeeuottawa-v3; the component classes are the class strings
+ * of the website's React components (Button, Input, Textarea, Checkbox,
+ * Select, Eyebrow, section headers), so pages here render identically.
+ */
+@font-face { font-family: 'Geist'; src: url('/assets/fonts/Geist-Variable.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/assets/fonts/GeistMono-Variable.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Space Grotesk'; src: url('/assets/fonts/SpaceGrotesk.ttf') format('truetype'); font-weight: 300 700; font-display: swap; }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+    font-size: unset;
+    font-weight: unset;
+  }
+
+  :root {
+    --font-geist-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+    --font-geist-mono: 'Geist Mono', ui-monospace, monospace;
+    --font-display: 'Space Grotesk', 'Geist', sans-serif;
+
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 225 93% 16%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 208 80% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --interactive: 208 80% 45%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 6% 80%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.2rem;
+    --success: 196 52% 74%;
+    --warning: 34 89% 85%;
+    --error: 10 100% 86%;
+    --ieee-blue: #03164f;
+    --site-header-height: 5rem;
+    --brand-blue: 202 100% 30%;
+    --brand-garnet: 349 100% 28%;
+  }
+
+  [data-theme='dark'] {
+    --background: 222 35% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 30% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --interactive: 208 80% 72%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0, 0%, 15%, 0.8;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --success: 196 100% 14%;
+    --warning: 34 51% 25%;
+    --error: 10 39% 43%;
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground min-h-[100vh] flex flex-col font-sans antialiased;
+  }
+}
+
+@layer components {
+  .page-title {
+    @apply font-display text-balance text-4xl font-medium leading-[1.1] tracking-tight sm:text-5xl md:text-[3.5rem];
+  }
+  .page-intro {
+    @apply max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg;
+  }
+  .section-title {
+    @apply font-display text-balance text-3xl font-medium leading-[1.1] tracking-tight sm:text-4xl md:text-[2.75rem];
+  }
+  .back-link {
+    @apply inline-flex min-h-10 items-center gap-2 font-mono text-sm text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4;
+  }
+
+  /* src/components/ui/button.tsx */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 text-center rounded-sm font-mono text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 min-h-11 px-5 py-2.5;
+  }
+  .btn-sm { @apply min-h-9 px-3 py-2; }
+  .btn-lg { @apply min-h-12 px-6 py-3; }
+  .btn-icon { @apply h-10 w-10 min-h-0 p-0; }
+  .btn-default { @apply bg-primary text-primary-foreground hover:bg-primary/90; }
+  .btn-destructive { @apply bg-destructive text-destructive-foreground hover:bg-destructive/90; }
+  .btn-ghost { @apply hover:bg-card hover:text-accent-foreground; }
+  .btn-link { @apply text-primary items-start justify-start underline-offset-4 hover:underline min-h-0 p-0; }
+  .btn-outline { @apply border border-foreground/40 bg-transparent text-foreground hover:bg-foreground/10; }
+  .btn-secondary { @apply bg-secondary text-secondary-foreground hover:bg-secondary/80; }
+  .btn-group > .btn { @apply -ml-px first:ml-0; }
+  .btn-group > .btn[aria-pressed='true'] { @apply bg-primary text-primary-foreground border-primary hover:bg-primary/90; }
+
+  /* src/components/ui/input.tsx, textarea.tsx, select.tsx, label.tsx, checkbox.tsx */
+  .input {
+    @apply flex h-10 w-full rounded border border-border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .textarea {
+    @apply flex min-h-[80px] w-full rounded border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .select {
+    @apply flex h-10 w-full items-center justify-between rounded border border-input bg-background px-3 py-2 pr-9 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+  .select-bare { @apply h-10 cursor-pointer border-none bg-transparent pl-0 pr-6 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring md:pl-3; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0 center; }
+  .label { @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70; }
+  .checkbox { @apply h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2; accent-color: hsl(var(--primary)); }
+
+  /* src/blocks/_shared.tsx Eyebrow */
+  .eyebrow { @apply inline-flex items-center gap-3 font-mono text-[0.7rem] font-medium uppercase tracking-[0.28em] text-primary; }
+  .eyebrow::before { content: ''; @apply h-px w-8 bg-foreground/25; }
+
+  /* Section header used on the events and documents pages */
+  .section-head { @apply mb-6 flex items-baseline justify-between gap-4 border-b border-border pb-4; }
+  .section-head h2 { @apply font-display text-2xl font-medium md:text-3xl; }
+  .meta { @apply font-mono text-xs text-muted-foreground; }
+  .kicker { @apply font-mono text-[0.7rem] uppercase tracking-[0.2em]; }
+
+  /* Header nav (src/Header/Nav/styles.ts) */
+  .nav-item { @apply rounded px-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary; }
+  .nav-item[aria-current='page'] { @apply text-primary underline underline-offset-8; }
+
+  /* Tables */
+  .table { @apply w-full border-collapse text-sm; }
+  .table th { @apply border-b border-border py-3 pr-4 text-left font-mono text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground; }
+  .table td { @apply border-b border-border py-3 pr-4 align-middle; }
+  .table tbody tr { @apply transition-colors hover:bg-muted/50; }
+}
+
+/* Calendar grid rows (kept outside Tailwind layers so the size is a single token). */
+.cal { --hour: 3.5rem; }
+.cal-lines { background-image: linear-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px); background-size: 100% var(--hour); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html { opacity: 0; }
+html[data-theme='dark'], html[data-theme='light'] { opacity: initial; }
+
+/* Admin */
+@layer components {
+  /* Tab row: the header nav-item style, selected tab underlined like aria-current. */
+  .tab-row { @apply -mx-2 flex overflow-x-auto pb-2 sm:-mx-3 sm:gap-1; scrollbar-width: none; }
+  .tab-row::-webkit-scrollbar { display: none; }
+  .tab-row .nav-item { @apply shrink-0 whitespace-nowrap px-2 sm:px-3; }
+  .tab-row .nav-item[aria-selected='true'] { @apply text-primary underline underline-offset-8; }
+
+  /* Hairline stat grid (QuickLinks cards layout). */
+  .stat-grid { @apply grid gap-px bg-foreground/10 py-px; }
+  .stat { @apply flex min-w-0 flex-col gap-3 bg-background p-6 md:p-8; }
+  .stat-value { @apply truncate font-display text-4xl font-medium leading-none tracking-tight tabular-nums md:text-5xl; }
+  .stat-label { @apply kicker text-muted-foreground; }
+
+  /* Field groups and toolbars. */
+  .field { @apply min-w-0 space-y-2; }
+  .toolbar { @apply flex flex-wrap items-center gap-3; }
+
+  /* Right-side panel; a bottom sheet below sm. */
+  .drawer { @apply fixed inset-0 z-50; }
+  .drawer-backdrop { @apply absolute inset-0 bg-foreground/20; }
+  .drawer-panel { @apply absolute inset-x-0 bottom-0 flex max-h-[90vh] flex-col overflow-y-auto border-t border-border bg-background sm:inset-y-0 sm:left-auto sm:right-0 sm:max-h-none sm:w-full sm:max-w-md sm:border-l sm:border-t-0; }
+}
+
+/* Numeric columns align right; action columns sit flush with the table edge. */
+.table th.text-right { text-align: right; }
+.table td.pr-0, .table th.pr-0 { padding-right: 0; }
+
+/* The hidden attribute wins over display utilities. */
+main [hidden] { display: none !important; }

@@ -107,6 +107,20 @@ func main() {
 	if key := os.Getenv("READER_API_KEY"); key != "" {
 		application.HTTP.ReaderAPIKey = key
 	}
+	if bot != nil && cfg.DiscordClientSecret != "" && cfg.SessionSecret != "" && cfg.PublicURL != "" {
+		webCfg := httptransport.WebConfig{
+			PublicURL: cfg.PublicURL, ClientSecret: cfg.DiscordClientSecret, SessionSecret: cfg.SessionSecret,
+			BotToken: cfg.DiscordToken, GuildID: cfg.DiscordExecGuildID, APIKey: cfg.APIKey,
+			Booking: application.Services.Booking, OnBookingChange: bot.RefreshBookings,
+		}
+		if webCfg.ClientID, err = discord.ApplicationID(cfg.DiscordToken); err != nil {
+			log.Error("website disabled: could not read the Discord application ID", "err", err)
+		} else if err = application.HTTP.EnableWeb(webCfg); err != nil {
+			log.Error("website disabled", "err", err)
+		} else {
+			log.Info("website enabled", "url", cfg.PublicURL)
+		}
+	}
 	application.HTTP.Start()
 	usbDone := make(chan struct{})
 	if path := os.Getenv("USB_READER_PORT"); path != "" {

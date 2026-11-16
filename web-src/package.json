@@ -1,0 +1,12 @@
+{
+  "name": "office-tracker-web",
+  "private": true,
+  "description": "Builds the office-tracker web styles from the IEEE uOttawa website design system.",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i input.css -o ../internal/transport/http/web/assets/app.css --minify && node copy-fonts.js"
+  },
+  "devDependencies": {
+    "geist": "1.7.0",
+    "tailwindcss": "3.4.17"
+  }
+}

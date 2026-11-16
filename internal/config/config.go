@@ -24,6 +24,9 @@ type Config struct {
 	CORSEnabled                 bool
 	APIKeyEnabled               bool
 	ReportsEnabled              bool
+	PublicURL                   string
+	DiscordClientSecret         string
+	SessionSecret               string
 }
 
 var log = logging.Component("config")
@@ -44,6 +47,9 @@ func Load() Config {
 		DBPath:                      getEnvTrim("DB_PATH"),
 		APIKey:                      getEnvTrim("API_KEY"),
 		CORSOrigins:                 getEnvTrim("CORS_ORIGINS"),
+		PublicURL:                   getEnvTrim("PUBLIC_URL"),
+		DiscordClientSecret:         getEnvTrim("DISCORD_CLIENT_SECRET"),
+		SessionSecret:               getEnvTrim("SESSION_SECRET"),
 	}
 
 	// Set defaults
