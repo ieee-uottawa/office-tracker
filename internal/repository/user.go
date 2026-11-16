@@ -214,3 +214,42 @@ func (r *UserRepo) DeleteWithFilter(filter query.UserFilter) (int64, error) {
 
 	return result.RowsAffected()
 }
+
+// Merge moves everything recorded for user `drop` onto user `keep` and then
+// deletes `drop` (and its card). When both have an open session, the one on
+// `drop` is a duplicate of the same visit and is removed.
+func (r *UserRepo) Merge(keep, drop int64) error {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var keepOpen, dropOpen int
+	if err = tx.QueryRow(`SELECT COUNT(*) FROM sessions WHERE user_id=? AND check_out IS NULL`, keep).Scan(&keepOpen); err != nil {
+		return err
+	}
+	if err = tx.QueryRow(`SELECT COUNT(*) FROM sessions WHERE user_id=? AND check_out IS NULL`, drop).Scan(&dropOpen); err != nil {
+		return err
+	}
+	if keepOpen > 0 && dropOpen > 0 {
+		if _, err = tx.Exec(`DELETE FROM sessions WHERE user_id=? AND check_out IS NULL`, drop); err != nil {
+			return err
+		}
+	}
+	if _, err = tx.Exec(`UPDATE sessions SET user_id=? WHERE user_id=?`, keep, drop); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(`UPDATE users SET jingle=(SELECT jingle FROM users WHERE id=?) WHERE id=? AND COALESCE(jingle,'')=''`, drop, keep); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(`DELETE FROM users WHERE id=?`, drop); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// UpdateName changes a member's display name.
+func (r *UserRepo) UpdateName(id int64, name string) error {
+	_, err := r.DB.Exec(`UPDATE users SET name=? WHERE id=?`, name, id)
+	return err
+}
