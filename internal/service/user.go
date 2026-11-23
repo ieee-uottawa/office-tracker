@@ -1,6 +1,9 @@
 package service
 
 import (
+	"errors"
+	"strings"
+
 	"office/internal/api/dto"
 	"office/internal/domain"
 	"office/internal/query"
@@ -13,8 +16,14 @@ type UserService struct {
 
 // CreateUser creates a new user and returns the DTO representation
 func (s *UserService) CreateUser(name, rfidUID, discordID string) (*dto.UserResponse, error) {
+	if err := s.checkDiscordFree(0, discordID); err != nil {
+		return nil, err
+	}
 	user, err := s.Users.Create(name, rfidUID, discordID)
 	if err != nil {
+		if isCardTaken(err) {
+			return nil, ErrCardInUse
+		}
 		log.Error("error creating user", "err", err)
 		return nil, err
 	}
@@ -75,8 +84,14 @@ func (s *UserService) ListUsers(filter query.UserFilter) ([]*dto.UserResponse, e
 
 // UpdateUser modifies an existing user's information and returns the DTO representation.
 func (s *UserService) UpdateUser(id int64, name, rfidUID, discordID string) (*dto.UserResponse, error) {
+	if err := s.checkDiscordFree(id, discordID); err != nil {
+		return nil, err
+	}
 	user, err := s.Users.Update(id, name, rfidUID, discordID)
 	if err != nil {
+		if isCardTaken(err) {
+			return nil, ErrCardInUse
+		}
 		log.Error("error updating user", "id", id, "err", err)
 		return nil, err
 	}
@@ -133,4 +148,47 @@ func toUserDTO(user *domain.User) *dto.UserResponse {
 		RFIDUID:   user.RFIDUID,
 		DiscordID: user.DiscordID,
 	}
+}
+
+// ErrDiscordInUse stops one person being registered twice (e.g. once per card).
+var ErrDiscordInUse = errors.New("that Discord account is already registered to another member; update that member's card instead")
+
+// ErrCardInUse means the RFID card belongs to another member.
+var ErrCardInUse = errors.New("that card is already registered to another member")
+
+func (s *UserService) checkDiscordFree(id int64, discordID string) error {
+	if strings.TrimSpace(discordID) == "" {
+		return nil
+	}
+	existing, err := s.Users.FindByDiscordID(discordID)
+	if err == nil && existing != nil && existing.ID != id {
+		return ErrDiscordInUse
+	}
+	return nil
+}
+
+func isCardTaken(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed: users.rfid_uid")
+}
+
+// SyncNames sets members' names to their current Discord server names
+// (keyed by Discord ID) and returns how many changed.
+func (s *UserService) SyncNames(names map[string]string) (int, error) {
+	users, err := s.Users.List(query.UserFilter{})
+	if err != nil {
+		return 0, err
+	}
+	changed := 0
+	for _, u := range users {
+		name, ok := names[u.DiscordID]
+		if !ok || strings.TrimSpace(name) == "" || name == u.Name {
+			continue
+		}
+		if err := s.Users.UpdateName(u.ID, name); err != nil {
+			return changed, err
+		}
+		log.Info("member name updated from Discord", "id", u.ID, "old", u.Name, "new", name)
+		changed++
+	}
+	return changed, nil
 }

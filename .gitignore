@@ -56,3 +56,5 @@ Thumbs.db
 # Deployment secrets and persistent state
 /deploy/tracker.env
 /deploy/data/
+
+web-src/node_modules/

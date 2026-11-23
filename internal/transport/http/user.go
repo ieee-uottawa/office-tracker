@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -41,6 +42,10 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.userSvc.CreateUser(req.Name, req.RFIDUID, req.DiscordID)
+	if errors.Is(err, service.ErrDiscordInUse) || errors.Is(err, service.ErrCardInUse) {
+		writeErrorJSON(w, http.StatusConflict, err.Error())
+		return
+	}
 	if err != nil {
 		log.Error("failed to create user", "err", err)
 		writeErrorJSON(w, http.StatusInternalServerError, "failed to create user")
@@ -103,6 +108,10 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.userSvc.UpdateUser(id, req.Name, req.RFIDUID, req.DiscordID)
+	if errors.Is(err, service.ErrDiscordInUse) || errors.Is(err, service.ErrCardInUse) {
+		writeErrorJSON(w, http.StatusConflict, err.Error())
+		return
+	}
 	if err != nil {
 		log.Error("failed to update user", "id", id, "err", err)
 		writeErrorJSON(w, http.StatusInternalServerError, "failed to update user")

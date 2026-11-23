@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -221,6 +222,10 @@ func (uc *UserCommands) handleCreate(s *discordgo.Session, i *discordgo.Interact
 	}
 
 	user, err := uc.userSvc.CreateUser(name, rfidUID, discordID)
+	if errors.Is(err, service.ErrDiscordInUse) || errors.Is(err, service.ErrCardInUse) {
+		respondEphemeral(s, i, "❌ "+strings.ToUpper(err.Error()[:1])+err.Error()[1:]+".")
+		return
+	}
 	if err != nil {
 		log.Error("failed to create user", "name", name, "rfid_uid", rfidUID, "error", err)
 		respondEphemeral(s, i, "❌ Failed to create user. Please try again.")
@@ -318,6 +323,10 @@ func (uc *UserCommands) handleUpdate(s *discordgo.Session, i *discordgo.Interact
 	}
 
 	user, err := uc.userSvc.UpdateUser(userID, name, rfidUID, discordID)
+	if errors.Is(err, service.ErrDiscordInUse) || errors.Is(err, service.ErrCardInUse) {
+		respondEphemeral(s, i, "❌ "+strings.ToUpper(err.Error()[:1])+err.Error()[1:]+".")
+		return
+	}
 	if err != nil {
 		log.Error("failed to update user", "user_id", userID, "error", err)
 		respondEphemeral(s, i, "❌ Failed to update user. User may not exist.")

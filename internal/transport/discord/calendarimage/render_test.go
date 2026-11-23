@@ -31,9 +31,21 @@ func TestRenderWeeklyCalendar(t *testing.T) {
 		{6, 20, 0, 120, "Jordan Lee", "Evening planning"},
 	} {
 		start := week.AddDate(0, 0, item.day).Add(time.Duration(item.hour)*time.Hour + time.Duration(item.minute)*time.Minute)
-		bookings = append(bookings, repository.Booking{ID: int64(index + 1), UserID: item.name, Name: item.name, Title: item.title, Start: start, End: start.Add(time.Duration(item.duration) * time.Minute), Status: "approved"})
+		status := "approved"
+		if index%3 == 1 {
+			status = "pending"
+		}
+		bookings = append(bookings, repository.Booking{ID: int64(index + 1), UserID: item.name, Name: item.name, Title: item.title, Start: start, End: start.Add(time.Duration(item.duration) * time.Minute), Status: status})
 	}
-	data, err := Render(week, bookings, week.AddDate(0, 0, 3))
+	// An overnight event is drawn on both days.
+	overnight := week.AddDate(0, 0, 5).Add(21 * time.Hour)
+	bookings = append(bookings, repository.Booking{ID: 99, UserID: "e", Name: "Events team", Title: "Hackathon", Start: overnight, End: overnight.Add(5 * time.Hour), Status: "approved"})
+	pieces := segments(week, bookings[len(bookings)-1:])
+	require.Len(t, pieces, 2)
+	require.Equal(t, [3]int{5, 21 * 60, 24 * 60}, [3]int{pieces[0].day, pieces[0].from, pieces[0].to})
+	require.Equal(t, [3]int{6, 0, 2 * 60}, [3]int{pieces[1].day, pieces[1].from, pieces[1].to})
+	require.False(t, pieces[1].first)
+	data, err := Render(week, bookings, week.AddDate(0, 0, 3).Add(15*time.Hour))
 	require.NoError(t, err)
 	im, err := png.Decode(bytes.NewReader(data))
 	require.NoError(t, err)
