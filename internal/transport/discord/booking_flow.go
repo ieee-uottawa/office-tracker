@@ -244,7 +244,7 @@ func (c *Calendar) pickerView(d *bookingDraft, problem string) view {
 				choices = insertSorted(choices, d.length())
 			}
 			for _, length := range choices {
-				if time.Duration(length)*time.Minute > fits && !(d.hasEnd && length == d.length()) {
+				if time.Duration(length)*time.Minute > fits && (!d.hasEnd || length != d.length()) {
 					continue
 				}
 				end := start.Add(time.Duration(length) * time.Minute)
@@ -279,7 +279,7 @@ func (c *Calendar) pickerView(d *bookingDraft, problem string) view {
 		rows = append(rows, row(discordgo.SelectMenu{MenuType: discordgo.StringSelectMenu, CustomID: id("repeat"), Placeholder: "Repeat", Options: repeat}))
 	}
 	next := button("Next", id("next"), discordgo.PrimaryButton)
-	next.Disabled = !(d.hasDay && d.hasStart && d.hasEnd)
+	next.Disabled = !d.hasDay || !d.hasStart || !d.hasEnd
 	rows = append(rows, row(next, button("Cancel", id("cancel"), discordgo.SecondaryButton)))
 	return view{content: strings.TrimSpace(header.String()), components: rows}
 }

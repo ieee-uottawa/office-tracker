@@ -139,7 +139,7 @@ func BookingAt(day time.Time, minute int) (time.Time, error) {
 	}
 	for _, delta := range []time.Duration{-time.Hour, time.Hour} {
 		other := t.Add(delta)
-		if other.Hour() == t.Hour() && other.Minute() == t.Minute() && BookingDay(other) == day {
+		if other.Hour() == t.Hour() && other.Minute() == t.Minute() && BookingDay(other).Equal(day) {
 			return time.Time{}, BookingInputError("that time happens twice when clocks change; choose a time outside the repeated hour")
 		}
 	}
